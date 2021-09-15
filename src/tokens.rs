@@ -10,6 +10,8 @@ pub enum Token {
     CloseRoundBrack,
     OpenCurlyBrack,
     CloseCurlyBrack,
+    OpenSquareBrack,
+    CloseSquareBrack,
     SemiColon,
     Comma,
 

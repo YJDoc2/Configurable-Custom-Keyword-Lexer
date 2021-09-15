@@ -19,12 +19,36 @@ stmt:Stmt = {
     <let_stmt> ";"? ,
     <if_stmt>,
     <while_stmt>,
+    <for_stmt>,
     <assign_stmt> ";"?
 }
 
 stmts:Vec<Stmt> = {
     <s:stmt> => vec![s],
     <mut s:stmts> <n:stmt> => {s.push(n);s},
+}
+
+for_stmt:Stmt = {
+    ForStart <fa1:ForAux1?> <name:ID> <fa2:ForAux2?> <fa3:ForAux3?> In <a:array> <fa4:ForAux4?> <b:block> =>{
+        if !lc.is_optional(ForAux1) && fa1.is_none(){
+            panic!("Error, for aux 1 required");
+        }
+        if !lc.is_optional(ForAux2) && fa2.is_none(){
+            panic!("Error, for aux 2 required");
+        }
+        if !lc.is_optional(ForAux3) && fa3.is_none(){
+            panic!("Error, for aux 3 required");
+        }
+        if !lc.is_optional(ForAux4) && fa4.is_none(){
+            panic!("Error, for aux 4 required");
+        }
+        if let ID(name)=name{
+            Stmt::For(For{iter_var:name,array:a,blk:b})
+        }else{
+            unreachable!();
+        }
+        
+    }
 }
 
 while_stmt:Stmt = {
@@ -135,6 +159,15 @@ value:Expr = {
     <str_lit>
 }
 
+array:Vec<Expr> = {
+    "[" <a1:expr> <a2:("," <expr>)*> "]" =>{
+        let mut v = vec![a1];
+        v.extend(a2);
+        v
+    }
+}
+
+
 id:Expr = {
     ID =>{
         if let ID(t) = <> {
@@ -181,6 +214,8 @@ extern{
         ")" => CloseRoundBrack,
         "{" => OpenCurlyBrack,
         "}" => CloseCurlyBrack,
+        "[" => OpenSquareBrack,
+        "]" => CloseSquareBrack,
         ";" => SemiColon,
         "," => Comma,
 

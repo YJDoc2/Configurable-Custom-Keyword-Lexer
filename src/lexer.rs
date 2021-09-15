@@ -155,6 +155,15 @@ impl Iterator for Lexer {
                 return Some(Ok((self.count - 1, Token::CloseCurlyBrack, self.count)));
             }
 
+            if c == '[' {
+                self.count += 1;
+                return Some(Ok((self.count - 1, Token::OpenSquareBrack, self.count)));
+            }
+            if c == ']' {
+                self.count += 1;
+                return Some(Ok((self.count - 1, Token::CloseSquareBrack, self.count)));
+            }
+
             if c == ';' {
                 self.count += 1;
                 return Some(Ok((self.count - 1, Token::SemiColon, self.count)));

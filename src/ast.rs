@@ -15,6 +15,14 @@ pub enum Stmt {
     If(IfStmt),
     Assign(Assign),
     While(While),
+    For(For),
+}
+
+#[derive(Debug)]
+pub struct For {
+    pub iter_var: String,
+    pub array: Vec<Expr>,
+    pub blk: Block,
 }
 
 #[derive(Debug)]

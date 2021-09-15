@@ -70,6 +70,17 @@ fn eval_stmt(s: &Stmt, symtab: &mut Scope) {
             symtab.update(name, v);
         }
         Stmt::While(w) => eval_while(w, symtab),
+        Stmt::For(f) => eval_for(f, symtab),
+    }
+}
+
+fn eval_for(f: &For, symtab: &mut Scope) {
+    symtab.push();
+    symtab.set(&f.iter_var, IRV::Num(0.0));
+    for e in f.array.iter() {
+        let t = eval_expr(&e, symtab);
+        symtab.update(&f.iter_var, t);
+        eval_block(&f.blk, symtab);
     }
 }
 
