@@ -10,13 +10,48 @@ pub program:AST = {
     stmts => AST{top_block:Block{stmts:<>}}
 }
 
-stmts:Vec<Stmt> = {
-    <p:print_stmt> ";"? => vec![p],
-    <l:let_stmt> ";"? => vec![l],
-    <mut s:stmts> <p:print_stmt> => {s.push(p);s},
-    <mut s:stmts> <l:let_stmt> => {s.push(l);s},
+block:Block ={
+    "{" <stmts> "}" => Block{stmts:<>},
 }
 
+stmt:Stmt = {
+    <print_stmt> ";"? ,
+    <let_stmt> ";"? ,
+    <if_stmt>,
+}
+
+stmts:Vec<Stmt> = {
+    <s:stmt> => vec![s],
+    <mut s:stmts> <n:stmt> => {s.push(n);s},
+}
+
+
+if_stmt:Stmt = {
+    IfStart <ifa1:IfAux1?> "(" <c:condition> ")" <ifa2:IfAux2?> <b1:block> <els:ElseStart?> <ea1:ElseAux1?> <b2:block?>=>{
+        if !lc.is_optional(IfAux1) && ifa1.is_none(){
+            panic!("Error, if aux 1 required");
+        }
+        if !lc.is_optional(IfAux2) && ifa2.is_none(){
+            panic!("Error, if aux 2 required");
+        }
+        
+        // else section
+        let else_blk;
+
+        if els.is_some(){
+            if !lc.is_optional(ElseAux1) && ea1.is_none(){
+                panic!("Error, else aux 1 required");
+            }
+            if b2.is_none(){
+                panic!("A block is required for else statements");
+            }
+            else_blk = b2.unwrap();
+        }else{
+            else_blk = Block{stmts:vec![]};
+        }
+        return Stmt::If(IfStmt{cond:c,if_blk:b1,else_blk:else_blk});
+    }
+}
 
 print_stmt:Stmt = {
     PrintStart "(" <v:expr> ")" <e:PrintEnd?> =>{
@@ -39,12 +74,15 @@ let_stmt:Stmt = {
 }
 
 condition:Condition = {
-    <c1:condition> "&&" <c2:condition> => Condition::LogicalOp(Box::new(c1),LogicalOp::And,Box::new(c2)),
-    <c1:condition> "||" <c2:condition> => Condition::LogicalOp(Box::new(c1),LogicalOp::Or,Box::new(c2)),
-    "!"<c:condition> => Condition::Not(Box::new(c)),
-    <comparison>
+    <c1:condition> "&&" <c2:unary_condition> => Condition::LogicalOp(Box::new(c1),LogicalOp::And,Box::new(c2)),
+    <c1:condition> "||" <c2:unary_condition> => Condition::LogicalOp(Box::new(c1),LogicalOp::Or,Box::new(c2)),
+    <unary_condition>
 }
 
+unary_condition:Condition ={
+    <comparison>,
+    "!"<c:unary_condition> => Condition::Not(Box::new(c)),
+}
 
 comparison:Condition = {
     <e1:expr> "<"  <e2:expr> => Condition::Comparison(e1,ComparisonOp::LT,e2),

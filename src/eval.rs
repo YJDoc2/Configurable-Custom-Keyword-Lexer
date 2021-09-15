@@ -29,8 +29,13 @@ impl Scope {
 
 pub fn eval(start: AST) {
     let mut symtab = Scope::default();
-    for stmt in start.top_block.stmts {
-        eval_stmt(stmt, &mut symtab);
+    symtab.push();
+    eval_block(start.top_block, &mut symtab);
+}
+
+fn eval_block(blk: Block, symtab: &mut Scope) {
+    for stmt in blk.stmts {
+        eval_stmt(stmt, symtab);
     }
 }
 
@@ -48,6 +53,11 @@ fn eval_stmt(s: Stmt, symtab: &mut Scope) {
 
 fn eval_if(i: IfStmt, symtab: &mut Scope) {
     let cond = eval_cond(i.cond, symtab);
+    if cond {
+        eval_block(i.if_blk, symtab);
+    } else {
+        eval_block(i.else_blk, symtab);
+    }
 }
 
 fn eval_cond(c: Condition, symtab: &mut Scope) -> bool {
@@ -57,20 +67,20 @@ fn eval_cond(c: Condition, symtab: &mut Scope) -> bool {
             let v2 = eval_expr(e2, symtab);
             match (v1, v2) {
                 (IRV::Num(n1), IRV::Num(n2)) => match op {
-                    ComparisonOp::Eq => return n1 == n2,
-                    ComparisonOp::GT => return n1 > n2,
-                    ComparisonOp::GTE => return n1 >= n2,
-                    ComparisonOp::LT => return n1 < n2,
-                    ComparisonOp::LTE => return n1 <= n2,
-                    ComparisonOp::NotEq => return n1 != n2,
+                    ComparisonOp::Eq => n1 == n2,
+                    ComparisonOp::GT => n1 > n2,
+                    ComparisonOp::GTE => n1 >= n2,
+                    ComparisonOp::LT => n1 < n2,
+                    ComparisonOp::LTE => n1 <= n2,
+                    ComparisonOp::NotEq => n1 != n2,
                 },
                 (IRV::Str(s1), IRV::Str(s2)) => match op {
                     ComparisonOp::Eq => return s1 == s2,
-                    ComparisonOp::GT => return s1 > s2,
-                    ComparisonOp::GTE => return s1 >= s2,
-                    ComparisonOp::LT => return s1 < s2,
-                    ComparisonOp::LTE => return s1 <= s2,
-                    ComparisonOp::NotEq => return s1 != s2,
+                    ComparisonOp::GT => s1 > s2,
+                    ComparisonOp::GTE => s1 >= s2,
+                    ComparisonOp::LT => s1 < s2,
+                    ComparisonOp::LTE => s1 <= s2,
+                    ComparisonOp::NotEq => s1 != s2,
                 },
                 _ => panic!("Cannot compare between string and number"),
             }
