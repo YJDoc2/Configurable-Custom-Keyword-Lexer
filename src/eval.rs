@@ -34,9 +34,11 @@ pub fn eval(start: AST) {
 }
 
 fn eval_block(blk: Block, symtab: &mut Scope) {
+    symtab.push();
     for stmt in blk.stmts {
         eval_stmt(stmt, symtab);
     }
+    symtab.pop();
 }
 
 fn eval_stmt(s: Stmt, symtab: &mut Scope) {
@@ -45,9 +47,17 @@ fn eval_stmt(s: Stmt, symtab: &mut Scope) {
         Stmt::Decl(d) => {
             let name = d.name;
             let v = eval_expr(d.value, symtab);
+            if let Some(_) = symtab.resolve(&name) {
+                panic!("Variable `{}` is declared twice.", name);
+            }
             symtab.set(name, v);
         }
         Stmt::If(i) => eval_if(i, symtab),
+        Stmt::Assign(a) => {
+            let name = a.id;
+            let v = eval_expr(a.value, symtab);
+            symtab.set(name, v);
+        }
     }
 }
 

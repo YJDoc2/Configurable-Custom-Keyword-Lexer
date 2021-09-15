@@ -13,6 +13,13 @@ pub enum Stmt {
     Print(PrintStmt),
     Decl(Decl),
     If(IfStmt),
+    Assign(Assign),
+}
+
+#[derive(Debug)]
+pub struct Assign {
+    pub id: String,
+    pub value: Expr,
 }
 
 #[derive(Debug)]
