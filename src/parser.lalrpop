@@ -1,0 +1,148 @@
+use crate::lexer;
+use crate::tokens;
+use crate::config::LangConfig;
+use crate::ast::*;
+use tokens::Token::*;
+
+grammar(lc:&LangConfig);
+
+pub program:AST = {
+    stmts => AST{top_block:Block{stmts:<>}}
+}
+
+stmts:Vec<Stmt> = {
+    <p:print_stmt> ";"? => vec![p],
+    <l:let_stmt> ";"? => vec![l],
+    <mut s:stmts> <p:print_stmt> => {s.push(p);s},
+    <mut s:stmts> <l:let_stmt> => {s.push(l);s},
+}
+
+
+print_stmt:Stmt = {
+    PrintStart "(" <v:expr> ")" <e:PrintEnd?> =>{
+        if !lc.is_optional(PrintEnd) && e.is_none(){
+            panic!("Error, print end required");
+        }
+        return Stmt::Print(PrintStmt{arg:v});
+    }
+}
+
+let_stmt:Stmt = {
+    LetStart <name:ID> "=" <v:expr> =>{
+        if let ID(name) = name{
+            return Stmt::Decl(Decl{name:name,value:v});
+        }else{
+            unreachable!();
+        }
+        
+    }
+}
+
+
+
+expr:Expr = {
+    <e:expr> "+" <f:factor> => Expr::Op(Box::new(e),Operator::Add,Box::new(f)),
+    <e:expr> "-" <f:factor> => Expr::Op(Box::new(e),Operator::Sub,Box::new(f)),
+    <factor>,
+}
+
+factor:Expr = {
+    <f:factor> "*" <n:value> => Expr::Op(Box::new(f),Operator::Mul,Box::new(n)),
+    <f:factor> "/" <n:value> => Expr::Op(Box::new(f),Operator::Div,Box::new(n)),
+    <value>
+}
+
+value:Expr = {
+    <num>,
+    <id>,
+    <str_lit>
+}
+
+id:Expr = {
+    ID =>{
+        if let ID(t) = <> {
+            return Expr::Val(Value::Id(t));
+        }else{
+            return Expr::Val(Value::Id("".to_owned()));
+        }
+    }
+
+}
+
+str_lit:Expr = {
+    StrLit =>{
+        if let StringVal(t) = <> {
+            return Expr::Val(Value::Sval(t));
+        }else{
+            return Expr::Val(Value::Sval("".to_owned()));
+        }
+    }
+
+}
+
+num:Expr = {
+    Num => {
+        if let Number(t) = <> {
+            return Expr::Val(Value::Nval(t.parse().unwrap()));
+        }else{
+            return Expr::Val(Value::Nval(0.0));
+        }
+    },
+    "(" <expr> ")"
+}
+
+extern{
+    type Location = usize;
+    type Error = lexer::LexerError;
+    
+    enum tokens::Token{
+        ID =>  ID(_),
+        Num => Number(_),
+        StrLit => StringVal(_),
+
+        "(" => OpenRoundBrack,
+        ")" => CloseRoundBrack,
+        "{" => OpenCurlyBrack,
+        "}" => CloseCurlyBrack,
+        ";" => SemiColon,
+        "," => Comma,
+
+        "+" => Plus,
+        "-" => Minus,
+        "*" => Mul,
+        "/" => Div,
+        "=" => Eq,
+        "==" => EqEq,
+
+        "<" => LessThan,
+        "<=" => LessThanEq,
+        ">" => GreaterThan,
+        ">=" => GreaterThanEq,
+        "!" => Not,
+        "!=" => NotEq,
+        "||" => Or,
+        "&&" => And,
+    
+        PrintStart => PrintStart,
+        PrintEnd => PrintEnd,
+
+        LetStart => LetStart,
+
+        ForStart => ForStart,
+        ForAux1 => ForAux1,
+        ForAux2 => ForAux2,
+        In => In,
+        ForAux3 => ForAux3,
+        ForAux4 => ForAux4,
+
+        IfStart => IfStart,
+        IfAux1 => IfAux1,
+        IfAux2 => IfAux2,
+        ElseStart => ElseStart,
+        ElseAux1 => ElseAux1,
+
+        WhileStart => WhileStart,
+        WhileAux1 => WhileAux1,
+        WhileAux2 => WhileAux2,
+    }
+}   

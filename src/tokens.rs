@@ -44,13 +44,12 @@ pub enum Token {
     IfStart,
     IfAux1,
     IfAux2,
+    ElseStart,
+    ElseAux1,
 
     WhileStart,
     WhileAux1,
     WhileAux2,
-
-    Unknown,
-    EOI,
 }
 
 impl std::fmt::Display for Token {
@@ -89,6 +88,8 @@ impl TryFrom<&str> for Token {
             "WhileStart" => Ok(WhileStart),
             "WhileAux1" => Ok(WhileAux1),
             "WhileAux2" => Ok(WhileAux2),
+            "ElseStart" => Ok(ElseStart),
+            "ElseAux1" => Ok(ElseAux1),
             _ => Err(format!("Unknown Token Type in config : {}", t)),
         }
     }
