@@ -1,7 +1,7 @@
 use crate::ast::*;
 use std::collections::HashMap;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 struct Scope {
     scopes: Vec<HashMap<String, IRV>>,
 }
@@ -13,9 +13,17 @@ impl Scope {
     pub fn pop(&mut self) {
         self.scopes.pop();
     }
-    pub fn set(&mut self, name: String, v: IRV) {
+    pub fn set(&mut self, name: &str, v: IRV) {
         let last = self.scopes.len() - 1;
-        self.scopes[last].insert(name, v);
+        self.scopes[last].insert(name.to_owned(), v);
+    }
+    pub fn update(&mut self, name: &str, v: IRV) {
+        for s in self.scopes.iter_mut().rev() {
+            if let Some(_v) = s.get_mut(name) {
+                *_v = v;
+                return;
+            }
+        }
     }
     pub fn resolve(&self, var: &str) -> Option<IRV> {
         for s in self.scopes.iter().rev() {
@@ -27,26 +35,26 @@ impl Scope {
     }
 }
 
-pub fn eval(start: AST) {
+pub fn eval(start: &AST) {
     let mut symtab = Scope::default();
     symtab.push();
-    eval_block(start.top_block, &mut symtab);
+    eval_block(&start.top_block, &mut symtab);
 }
 
-fn eval_block(blk: Block, symtab: &mut Scope) {
+fn eval_block(blk: &Block, symtab: &mut Scope) {
     symtab.push();
-    for stmt in blk.stmts {
+    for stmt in blk.stmts.iter() {
         eval_stmt(stmt, symtab);
     }
     symtab.pop();
 }
 
-fn eval_stmt(s: Stmt, symtab: &mut Scope) {
+fn eval_stmt(s: &Stmt, symtab: &mut Scope) {
     match s {
         Stmt::Print(p) => eval_print(p, symtab),
         Stmt::Decl(d) => {
-            let name = d.name;
-            let v = eval_expr(d.value, symtab);
+            let name = &d.name;
+            let v = eval_expr(&d.value, symtab);
             if let Some(_) = symtab.resolve(&name) {
                 panic!("Variable `{}` is declared twice.", name);
             }
@@ -54,23 +62,33 @@ fn eval_stmt(s: Stmt, symtab: &mut Scope) {
         }
         Stmt::If(i) => eval_if(i, symtab),
         Stmt::Assign(a) => {
-            let name = a.id;
-            let v = eval_expr(a.value, symtab);
-            symtab.set(name, v);
+            let name = &a.id;
+            if let None = symtab.resolve(name) {
+                panic!("Cannot assign to undeclared variable `{}`.", name);
+            }
+            let v = eval_expr(&a.value, symtab);
+            symtab.update(name, v);
         }
+        Stmt::While(w) => eval_while(w, symtab),
     }
 }
 
-fn eval_if(i: IfStmt, symtab: &mut Scope) {
-    let cond = eval_cond(i.cond, symtab);
+fn eval_while(w: &While, symtab: &mut Scope) {
+    while eval_cond(&w.cond, symtab) {
+        eval_block(&w.block, symtab);
+    }
+}
+
+fn eval_if(i: &IfStmt, symtab: &mut Scope) {
+    let cond = eval_cond(&i.cond, symtab);
     if cond {
-        eval_block(i.if_blk, symtab);
+        eval_block(&i.if_blk, symtab);
     } else {
-        eval_block(i.else_blk, symtab);
+        eval_block(&i.else_blk, symtab);
     }
 }
 
-fn eval_cond(c: Condition, symtab: &mut Scope) -> bool {
+fn eval_cond(c: &Condition, symtab: &mut Scope) -> bool {
     match c {
         Condition::Comparison(e1, op, e2) => {
             let v1 = eval_expr(e1, symtab);
@@ -95,22 +113,22 @@ fn eval_cond(c: Condition, symtab: &mut Scope) -> bool {
                 _ => panic!("Cannot compare between string and number"),
             }
         }
-        Condition::Not(c) => return !eval_cond(*c, symtab),
+        Condition::Not(c) => return !eval_cond(c, symtab),
         Condition::LogicalOp(c1, op, c2) => {
-            let c1 = eval_cond(*c1, symtab);
+            let c1 = eval_cond(c1, symtab);
             match op {
                 LogicalOp::And => {
                     if !c1 {
                         return false;
                     } else {
-                        return eval_cond(*c2, symtab);
+                        return eval_cond(c2, symtab);
                     }
                 }
                 LogicalOp::Or => {
                     if c1 {
                         return true;
                     } else {
-                        return eval_cond(*c2, symtab);
+                        return eval_cond(c2, symtab);
                     }
                 }
             }
@@ -118,17 +136,17 @@ fn eval_cond(c: Condition, symtab: &mut Scope) -> bool {
     }
 }
 
-fn eval_print(p: PrintStmt, symtab: &mut Scope) {
-    let v = eval_expr(p.arg, symtab);
+fn eval_print(p: &PrintStmt, symtab: &mut Scope) {
+    let v = eval_expr(&p.arg, symtab);
     println!("{}", v);
 }
 
-fn eval_expr(e: Expr, symtab: &mut Scope) -> IRV {
+fn eval_expr(e: &Expr, symtab: &mut Scope) -> IRV {
     match e {
         Expr::Val(v) => get_irv(v, symtab),
         Expr::Op(e1, op, e2) => {
-            let e1v = eval_expr(*e1, symtab);
-            let e2v = eval_expr(*e2, symtab);
+            let e1v = eval_expr(e1, symtab);
+            let e2v = eval_expr(e2, symtab);
             match op {
                 Operator::Add => add_vals(e1v, e2v),
                 Operator::Sub => match (e1v, e2v) {
@@ -158,10 +176,10 @@ fn add_vals(v1: IRV, v2: IRV) -> IRV {
     }
 }
 
-fn get_irv(v: Value, symtab: &mut Scope) -> IRV {
+fn get_irv(v: &Value, symtab: &mut Scope) -> IRV {
     match v {
-        Value::Nval(n) => IRV::Num(n),
-        Value::Sval(s) => IRV::Str(s),
+        Value::Nval(n) => IRV::Num(*n),
+        Value::Sval(s) => IRV::Str(s.clone()),
         Value::Id(id) => match symtab.resolve(&id) {
             Some(v) => v.clone(),
             None => panic!("Variable `{}` used before declared", id),

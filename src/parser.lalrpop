@@ -18,12 +18,25 @@ stmt:Stmt = {
     <print_stmt> ";"? ,
     <let_stmt> ";"? ,
     <if_stmt>,
+    <while_stmt>,
     <assign_stmt> ";"?
 }
 
 stmts:Vec<Stmt> = {
     <s:stmt> => vec![s],
     <mut s:stmts> <n:stmt> => {s.push(n);s},
+}
+
+while_stmt:Stmt = {
+    WhileStart <wa1:WhileAux1?> "(" <c:condition> ")" <wa2:WhileAux2?> <b:block> =>{
+        if !lc.is_optional(WhileAux1) && wa1.is_none(){
+            panic!("Error, while aux 1 required");
+        }
+        if !lc.is_optional(WhileAux2) && wa2.is_none(){
+            panic!("Error, while aux 2 required");
+        }
+        Stmt::While(While{cond:c,block:b})
+    }
 }
 
 assign_stmt:Stmt = {

@@ -14,12 +14,19 @@ pub enum Stmt {
     Decl(Decl),
     If(IfStmt),
     Assign(Assign),
+    While(While),
 }
 
 #[derive(Debug)]
 pub struct Assign {
     pub id: String,
     pub value: Expr,
+}
+
+#[derive(Debug)]
+pub struct While {
+    pub cond: Condition,
+    pub block: Block,
 }
 
 #[derive(Debug)]
