@@ -4,29 +4,22 @@ mod eval;
 mod lexer;
 mod parser;
 mod tokens;
+use clap::Clap;
+use std::path::PathBuf;
+
+#[derive(Clap, Debug)]
+#[clap(version = "0.0.1", author = "Yashodhan Joshi <yjdoc2@gmail.com>")]
+struct Opts {
+    #[clap(short, long)]
+    config: PathBuf,
+    #[clap(short, long)]
+    file: PathBuf,
+}
+
 fn main() {
-    let ip = "नवीन v1 = १२३४;
-        जर (v1>12) तर{
-            हे(v1+(123 - (25*6))) दाखवा ;
-        } नाहीतर {
-            हे('Hello') दाखवा;
-        }
-        v1 = १;
-        जर (v1>12) तर{
-            हे(v1+(123 - (25*6))) दाखवा;
-        } नाहीतर {
-            हे('Hello') दाखवा;
-        }
-        नवीन i = 0;
-        जोपर्यंत (i<5) तोपर्यंत{
-            हे('आता i ची value आहे '+i)दाखवा;
-            i = i+1;
-        }
-        for k in [i,v1]{
-            हे(k)दाखवा;
-        }
-        ";
-    let config = config::get_config().unwrap();
+    let opts = Opts::parse();
+    let ip = std::fs::read_to_string(&opts.file).unwrap();
+    let config = config::get_config(&opts.config).unwrap();
     let l = lexer::Lexer::new(ip.chars().collect(), config.clone());
     let ast = parser::programParser::new().parse(&config, l).unwrap();
     eval::eval(&ast);

@@ -3,6 +3,7 @@ use lazy_static::lazy_static;
 use std::collections::{HashMap, HashSet};
 use std::convert::TryFrom;
 use std::fs;
+use std::path::PathBuf;
 
 lazy_static! {
     static ref REQUIRED_TOKENS: HashMap<Token, &'static str> = {
@@ -40,8 +41,8 @@ impl Default for LangConfig {
     }
 }
 
-pub fn get_config() -> Result<LangConfig, String> {
-    let c = fs::read_to_string("config").unwrap();
+pub fn get_config(file: &PathBuf) -> Result<LangConfig, String> {
+    let c = fs::read_to_string(file).unwrap();
     let mut lc = LangConfig {
         keywords: HashMap::new(),
         empty_tokens: HashSet::new(),

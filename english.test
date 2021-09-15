@@ -1,0 +1,20 @@
+let v1 = 1234;
+if (v1>12){
+    print(v1+(123 - (25*6)));
+} else {
+    print('Hello');
+}
+v1 = 1;
+if(v1>12){
+    print(v1+(123 - (25*6)));
+} else{
+    print('Hello');
+}
+let i = 0;
+while (i<5){
+    print('आता i ची value आहे '+i);
+    i = i+1;
+}
+for k in [i,v1]{
+    print(k);
+}

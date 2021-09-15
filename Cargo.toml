@@ -8,6 +8,10 @@ edition = "2018"
 [build-dependencies]
 lalrpop = { version = "0.19.1", features = ["lexer"] }
 
+[dependencies.clap]
+version = "3.0.0-beta.4"
+default-features = false
+features = ["std", "suggestions", "derive", "cargo"]
 
 [dependencies]
 unicode-xid = "0.2.2"
