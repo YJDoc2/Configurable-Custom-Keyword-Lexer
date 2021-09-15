@@ -1,18 +1,4 @@
-condition:bool = {
-    <c1:condition> "&&" <c2:Bool> => c1 && c2,
-    <c1:condition> "||" <c2:Bool> => c1 || c2,
-    Bool
-}
 
-
-Bool:bool = {
-    <n1:num> "<" <n2:num> => n1<n2,
-    <n1:num> ">" <n2:num> => n1>n2,
-    <n1:num> "<=" <n2:num> => n1<=n2,
-    <n1:num> ">=" <n2:num> => n1>=n2,
-    <n1:num> "!=" <n2:num> => n1!=n2,
-    <n1:num> "==" <n2:num> => n1-n2 < 0.0000000001,
-}
 
 
 

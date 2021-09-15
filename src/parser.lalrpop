@@ -38,6 +38,22 @@ let_stmt:Stmt = {
     }
 }
 
+condition:Condition = {
+    <c1:condition> "&&" <c2:condition> => Condition::LogicalOp(Box::new(c1),LogicalOp::And,Box::new(c2)),
+    <c1:condition> "||" <c2:condition> => Condition::LogicalOp(Box::new(c1),LogicalOp::Or,Box::new(c2)),
+    "!"<c:condition> => Condition::Not(Box::new(c)),
+    <comparison>
+}
+
+
+comparison:Condition = {
+    <e1:expr> "<"  <e2:expr> => Condition::Comparison(e1,ComparisonOp::LT,e2),
+    <e1:expr> ">"  <e2:expr> => Condition::Comparison(e1,ComparisonOp::GT,e2),
+    <e1:expr> "<=" <e2:expr> => Condition::Comparison(e1,ComparisonOp::LTE,e2),
+    <e1:expr> ">=" <e2:expr> => Condition::Comparison(e1,ComparisonOp::GTE,e2),
+    <e1:expr> "!=" <e2:expr> => Condition::Comparison(e1,ComparisonOp::NotEq,e2),
+    <e1:expr> "==" <e2:expr> => Condition::Comparison(e1,ComparisonOp::Eq,e2),
+}
 
 
 expr:Expr = {

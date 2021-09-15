@@ -12,6 +12,7 @@ pub struct Block {
 pub enum Stmt {
     Print(PrintStmt),
     Decl(Decl),
+    If(IfStmt),
 }
 
 #[derive(Debug)]
@@ -32,11 +33,41 @@ pub enum Expr {
 }
 
 #[derive(Debug)]
+pub struct IfStmt {
+    pub cond: Condition,
+    pub if_blk: Block,
+    pub else_blk: Block,
+}
+
+#[derive(Debug)]
+pub enum Condition {
+    Comparison(Expr, ComparisonOp, Expr),
+    Not(Box<Condition>),
+    LogicalOp(Box<Condition>, LogicalOp, Box<Condition>),
+}
+
+#[derive(Debug)]
 pub enum Operator {
     Add,
     Sub,
     Mul,
     Div,
+}
+
+#[derive(Debug)]
+pub enum LogicalOp {
+    And,
+    Or,
+}
+
+#[derive(Debug)]
+pub enum ComparisonOp {
+    LT,
+    LTE,
+    GT,
+    GTE,
+    NotEq,
+    Eq,
 }
 
 #[derive(Debug)]
