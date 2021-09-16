@@ -7,10 +7,11 @@
 This is still very experimental, and for any syntax error it will just panic giving very unhelpful error message. The error recovery and more helpful error messages are possible, but have not been implemented yet. Also this is more of a proof-of-concept, and the language itself only supports variable declaration,assignment, while and for loop, if-else statements and baked-in print statement
 
 If someone is actually interested in this, I can add more examples, write up a better documentation etc, let me know in issues.
+This can also theoretically be used to convert program from one keyword mappings to another, but haven't gotten around to do that yet.
 
 ---
 
-Inspired by [a tweet](https://twitter.com/Felienne/status/1435864809963130883) , I made this lexer-parser pair along with an evaluator, which allows you to set custom tokens for the language using a config file, and according to that config, this runs the program. To show in short, what this makes possible:
+Inspired by [a tweet](https://twitter.com/Felienne/status/1435864809963130883) , I made this lexer-parser pair along with an evaluator, which allows you to set custom keywords for the language using a config file, and according to that config, this runs the program. To show in short, what this makes possible:
 
 ```sh
 # English
@@ -80,17 +81,17 @@ FLAGS:
     -V, --version    Print version information
 
 OPTIONS:
-    -c, --config <CONFIG>    Token Configuration file
+    -c, --config <CONFIG>    Keyword Configuration file
     -f, --file <FILE>        Source code file
 ```
 
-This takes in a token config file, which specify the token mappings, which are then used by the lexer to determine the tokens. The lexer then emits the tokens, which are used by parser to generate AST. This AST is evaluated using a recursive tree walker, again taken after [Crafting Interpreters](https://craftinginterpreters.com/).
+This takes in a keyword config file, which specify the keyword mappings, which are then used by the lexer to determine the tokens. The lexer then emits the tokens, which are used by parser to generate AST. This AST is evaluated using a recursive tree walker, again taken after [Crafting Interpreters](https://craftinginterpreters.com/).
 
 The point to note here is that the major changes here from other lexer-parsers are confined to lexer and parser only. This can still emit a convenient Intermediate Representation, such as AST, which can then be transplied to some other language.
 
 ### Language Specification
 
-Currently following tokens are configurable, the brackets are default english fallback values, in case tokens are not specified in config file :
+Currently following keywords are configurable, the brackets are default english fallback values:
 
 - PrintStart ( print )
 - PrintEnd
@@ -112,7 +113,7 @@ Currently following tokens are configurable, the brackets are default english fa
 - WhileAux1
 - WhileAux2
 
-Where \*Aux tokens are optional, and other are required. These auxillary tokens are provided so that the constructs, such as : if, while can be made more "organic", as some languages can use extra tokens to make the constructs more "coherent"/"natural" for that language.
+Where \*Aux tokkeywordsens are optional, and other are required. These auxillary keywords are provided so that the constructs, such as : if, while can be made more "organic", as some languages can use extra keywords to make the constructs more "coherent"/"natural" for that language.
 
 Currently the structure of this language is as (can be seen in parser.lalrpop file):
 
@@ -140,4 +141,4 @@ array => [ comma-separated-expr ]
 
 ## Licence
 
-This code is released under GNU GPL V3, see [License](https://github.com/YJDoc2/Configurable-Custom-Token-Lexer/blob/main/License) file for more info.
+This code is released under GNU GPL V3, see [License](https://github.com/YJDoc2/Configurable-Custom-Keyword-Lexer/blob/main/License) file for more info.
