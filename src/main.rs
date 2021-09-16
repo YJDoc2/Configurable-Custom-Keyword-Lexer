@@ -10,8 +10,10 @@ use std::path::PathBuf;
 #[derive(Clap, Debug)]
 #[clap(version = "0.0.1", author = "Yashodhan Joshi <yjdoc2@gmail.com>")]
 struct Opts {
+    /// Token Configuration file
     #[clap(short, long)]
     config: PathBuf,
+    /// Source code file
     #[clap(short, long)]
     file: PathBuf,
 }
