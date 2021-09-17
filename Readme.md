@@ -1,4 +1,4 @@
-# Custrom Configurable Lexer-Parser
+# Custom Configurable Lexer-Parser
 
 ---
 
@@ -68,7 +68,7 @@ both are a valid programs and can be run by <strong>the same binary</strong>, wi
 
 ## How this works
 
-This is made of three parts : A handwritten lexer, taken much after the amazing [Crafting Interpreters](https://craftinginterpreters.com/), A Parser , generated using [Lalrpop crate](https://crates.io/crates/lalrpop), and the a evaluator.
+This is made of three parts : A handwritten lexer, taken much after the amazing [Crafting Interpreters](https://craftinginterpreters.com/), A Parser , generated using [Lalrpop crate](https://crates.io/crates/lalrpop), and an evaluator.
 
 the commandline interface is :
 
@@ -113,7 +113,7 @@ Currently following keywords are configurable, the brackets are default english 
 - WhileAux1
 - WhileAux2
 
-Where \*Aux tokkeywordsens are optional, and other are required. These auxillary keywords are provided so that the constructs, such as : if, while can be made more "organic", as some languages can use extra keywords to make the constructs more "coherent"/"natural" for that language.
+Where \*Aux keywords are optional, and other are required. These auxillary keywords are provided so that the constructs, such as : if, while can be made more "organic", as some languages can use extra keywords to make the constructs more "coherent"/"natural" for that language.
 
 Currently the structure of this language is as (can be seen in parser.lalrpop file):
 
